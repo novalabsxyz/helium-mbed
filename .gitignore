@@ -35,4 +35,5 @@ helium
 *.su
 /.temp/
 .tramp_history
+.python-version
 TAGS
