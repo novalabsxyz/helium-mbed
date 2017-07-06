@@ -4,25 +4,25 @@
 bool
 helium_serial_readable(void * param)
 {
-    Serial * serial = (Serial *)param;
+    BufferedSerial * serial = (BufferedSerial *)param;
     return serial->readable() > 0;
 }
 
 bool
 helium_serial_getc(void * param, uint8_t * ch)
 {
-    Serial * serial = (Serial *)param;
-
+    BufferedSerial * serial = (BufferedSerial *)param;
     int val = serial->getc();
-    *ch = val & 0xFF;
+    *ch = val;
     return val >= 0;
 }
 
 bool
 helium_serial_putc(void * param, uint8_t ch)
 {
-    Serial * serial = (Serial *)param;
-    return serial->putc(ch) == 1;
+    BufferedSerial * serial = (BufferedSerial *)param;
+    serial->putc(ch);
+    return true;
 }
 
 void
@@ -32,12 +32,10 @@ helium_wait_us(void * param, uint32_t us)
     wait_us(us);
 }
 
-
 Helium::Helium(PinName tx, PinName rx) : serial(tx, rx, 9600)
 {
     helium_init(&_ctx, (void *)&serial);
 }
-
 
 int
 Helium::baud(enum helium_baud baud)

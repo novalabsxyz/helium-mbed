@@ -3,8 +3,8 @@
  * All Rights Reserved. See LICENSE.txt for license information
  */
 
-#include "Ringbuffer.h"
 #include "mbed.h"
+#include "Ringbuffer.h"
 
 #ifndef BUFFEREDSERIAL_H
 #define BUFFEREDSERIAL_H
@@ -21,83 +21,55 @@
  * Note that writing is not buffered at this time since writing to the
  * serial port at speed had not been an issue so far.
  */
-template <size_t BufferSize>
-class BufferedSerial : RawSerial
+class BufferedSerial : public RawSerial
 {
-  private:
-    RingBuffer<uint8_t, BufferSize> _rx_buffer;
-    void _rx_interrupt()
-    {
-        _rx_buffer.push(serial_getc(&_serial));
-    }
-
   public:
     /** Crete a buffered serial port.
      *
      * @param tx Serial port tx pin to use
      * @param rx Serial port rx pin to use
-     * @param baud The baud rate to use. Defaults to the default for the current board
+     * @param baud The baud rate to use. Defaults to the default for the current
+     * board
      */
     BufferedSerial(PinName tx,
                    PinName rx,
-                   int     baud = MBED_CONF_PLATFORM_DEFAULT_SERIAL_BAUD_RATE)
-        : RawSerial(tx, rx, baud)
-    {
-        this->attach(callback(this, &BufferedSerial::_rx_interrupt),
-                     Serial::RxIrq);
-    }
+                   int     baud = MBED_CONF_PLATFORM_DEFAULT_SERIAL_BAUD_RATE);
 
     /** Destructor */
-    ~BufferedSerial()
-    {
-        this->attach(NULL, Serial::RxIrq);
-    }
+    ~BufferedSerial();
 
 
     /** Sets the baud rate for the serial port
      *
      * @param baud The baud rate to set on the serial port
      */
-    void baud(int baud)
-    {
-        serial_baud(&_serial, baud);
-    }
+    void baud(int baud);
 
     /** Get a byte from the serial port buffer.
      *
      * @return a buffered byte or -1 if no bytes are available
      */
-    int getc()
-    {
-        uint8_t ch;
-        if (_rx_buffer.pop(&ch))
-        {
-            return ch;
-        }
-        return -1;
-    };
+    int getc();
 
     /** Write a byte to the serial port
      *
      * @param ch The byte to write
      * @return the byte that was written
      */
-    int putc(int ch)
-    {
-        serial_putc(&_serial, ch);
-        return ch;
-    }
+    int putc(int ch);
 
     /** Check if there are bytes to read.
      *
      * @return 1 if bytes are available, 0 otherwise
      */
-    int readable()
-    {
-        return _rx_buffer.available() > 0;
-    };
-};
+    int readable();
 
+
+  private:
+    RingBuffer<uint8_t, 16> _rx_buffer;
+    void _rx_interrupt();
+
+};
 
 
 #endif

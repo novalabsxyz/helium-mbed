@@ -7,6 +7,7 @@
 #define HELIUM_H
 
 #include "mbed.h"
+#include "BufferedSerial.h"
 #include "helium-client/helium-client.h"
 
 /**
@@ -16,10 +17,6 @@
  *
  * This class offers the basic ability to communicate with the Helium
  * Atom module.
- *
- * See the @ref Basic.ino sketch for an example on how to create a
- * channel and send to it.
- *
  */
 class Helium
 {
@@ -116,8 +113,8 @@ class Helium
     }
 
   private:
-    Serial serial;
     struct helium_ctx _ctx;
+    BufferedSerial serial;
 
     friend class Channel;
 };
@@ -222,9 +219,3 @@ class Channel
 };
 
 #endif // HELIUM_H
-
-/** @example Basic.cpp
- *
- * shows a basic example of how to construct Helium, an MQTT channel
- * and transmitting data to that channel
- */

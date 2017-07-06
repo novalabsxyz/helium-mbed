@@ -54,7 +54,7 @@ class RingBuffer
 
     /** Pop a value from the buffer.
      *
-     * @param value A pointer to the value to populate with the popped item
+     * @param[out] value A pointer to the value to populate with the popped item
      * @return true if the pop succeeded, false if the buffer is empty.
      */
     bool pop(BufferType * value)
