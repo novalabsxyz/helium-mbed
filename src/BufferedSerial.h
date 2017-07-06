@@ -4,7 +4,7 @@
  */
 
 #include "mbed.h"
-#include "Ringbuffer.h"
+#include "RingBuffer.h"
 
 #ifndef BUFFEREDSERIAL_H
 #define BUFFEREDSERIAL_H
