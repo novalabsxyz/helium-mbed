@@ -12,8 +12,8 @@ bool
 helium_serial_getc(void * param, uint8_t * ch)
 {
     BufferedSerial * serial = (BufferedSerial *)param;
-    int val = serial->getc();
-    *ch = val;
+    int              val    = serial->getc();
+    *ch                     = val;
     return val >= 0;
 }
 
@@ -32,7 +32,8 @@ helium_wait_us(void * param, uint32_t us)
     wait_us(us);
 }
 
-Helium::Helium(PinName tx, PinName rx) : serial(tx, rx, 9600)
+Helium::Helium(PinName tx, PinName rx)
+    : serial(tx, rx, 9600)
 {
     helium_init(&_ctx, (void *)&serial);
 }
@@ -116,13 +117,12 @@ Channel::begin(const char * name, int8_t * result)
     _channel_id     = -1;
     if (helium_status_OK == status)
     {
-        status = poll(token, &_channel_id, HELIUM_POLL_RETRIES_5S);
+        status = poll_result(token, &_channel_id);
     }
 
     if (result)
     {
-        *result =
-            status == helium_status_OK && _channel_id > 0 ? 0 : _channel_id;
+        *result = status == helium_status_OK && _channel_id > 0 ? 0 : _channel_id;
     }
 
     return status;
@@ -142,13 +142,28 @@ Channel::send(void const * data, size_t len, int8_t * result)
     int      status = send(data, len, &token);
     if (helium_status_OK == status)
     {
-        status = poll(token, result, HELIUM_POLL_RETRIES_5S);
+        status = poll_result(token, result);
     }
     return status;
 }
 
 int
-Channel::poll(uint16_t token, int8_t * result, uint32_t retries)
+Channel::poll_result(uint16_t token, int8_t * result, uint32_t retries)
 {
     return helium_channel_poll_result(&_helium->_ctx, token, result, retries);
+}
+
+int
+Channel::poll_data(uint16_t channel_id,
+                   void *   data,
+                   size_t   len,
+                   size_t * used,
+                   uint32_t retries)
+{
+    return helium_channel_poll_data(&_helium->_ctx,
+                                    channel_id,
+                                    data,
+                                    len,
+                                    used,
+                                    retries);
 }
