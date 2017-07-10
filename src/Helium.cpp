@@ -81,7 +81,6 @@ Helium::connect(struct connection * connection, uint32_t retries)
     return helium_connect(&_ctx, connection, retries);
 }
 
-
 bool
 Helium::connected()
 {
@@ -92,6 +91,12 @@ int
 Helium::sleep(struct connection * connection)
 {
     return helium_sleep(&_ctx, connection);
+}
+
+bool
+Helium::needs_reset()
+{
+    return helium_needs_reset(&_ctx);
 }
 
 int
