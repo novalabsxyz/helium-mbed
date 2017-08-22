@@ -36,3 +36,6 @@ helium
 .tramp_history
 .python-version
 TAGS
+GPATH
+GRTAGS
+GTAGS
