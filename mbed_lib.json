@@ -1,0 +1,14 @@
+{
+  "name" : "Helium",
+  "config" : {
+    "debug" : {
+      "help" : "Print debug output",
+      "macro_name" : "DEBUG",
+      "value": 1
+    },
+    "macros" : [],
+    "target_overrides":
+    {
+    }
+  }
+}
