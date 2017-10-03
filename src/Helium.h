@@ -172,8 +172,8 @@ class Channel
      *
      * The Channel#begin(const char *) method is a synchronous version
      * of this method. Sending a request to a channel returns a
-     * `token` which can be used in a subsequent call to #poll() to
-     * check for results from the remote channel.
+     * `token` which can be used in a subsequent call to
+     * #poll_result() to check for results from the remote channel.
      *
      * @param name The name of the channel to authenticate with.
      * @param token The output parameter for the pending result token.
@@ -202,7 +202,7 @@ class Channel
      * that the token represents.
      *
      * @param token The token to check for
-     * @param result[out] The result of the given request token
+     * @param[out] result The result of the given request token
      * @param retries The number of times to retry
      */
     int poll_result(uint16_t token,
@@ -230,11 +230,10 @@ class Channel
                   size_t * used,
                   uint32_t retries = HELIUM_POLL_RETRIES_5S);
 
-    /** The Helium Atom this channel uses to communicate. */
     Helium * helium;
 
   private:
-    int8_t   _channel_id;
+    struct helium_channel _ctx;
 
     friend class Config;
 };
@@ -294,13 +293,12 @@ class Config
             int32_t      default_value,
             uint32_t     retries = HELIUM_POLL_RETRIES_5S)
     {
-        return _get(key,
-                    helium_config_i32,
-                    value,
-                    sizeof(*value),
-                    &default_value,
-                    sizeof(default_value),
-                    retries);
+        int status = _get(key, helium_config_i32, value, sizeof(*value), retries);
+        if (status != config_status_POLL_FOUND)
+        {
+            *value = default_value;
+        }
+        return status;
     }
 
     /** Get a float configuration value
@@ -318,13 +316,12 @@ class Config
             float        default_value,
             uint32_t     retries = HELIUM_POLL_RETRIES_5S)
     {
-        return _get(key,
-                    helium_config_f32,
-                    value,
-                    sizeof(*value),
-                    &default_value,
-                    sizeof(default_value),
-                    retries);
+        int status = _get(key, helium_config_f32, value, sizeof(*value), retries);
+        if (status != config_status_POLL_FOUND)
+        {
+            *value = default_value;
+        }
+        return status;
     }
 
 
@@ -343,13 +340,13 @@ class Config
             bool         default_value,
             uint32_t     retries = HELIUM_POLL_RETRIES_5S)
     {
-        return _get(key,
-                    helium_config_bool,
-                    value,
-                    sizeof(*value),
-                    &default_value,
-                    sizeof(default_value),
-                    retries);
+        int status =
+            _get(key, helium_config_bool, value, sizeof(*value), retries);
+        if (status != config_status_POLL_FOUND)
+        {
+            *value = default_value;
+        }
+        return status;
     }
 
     /** Get a string configuration value
@@ -370,16 +367,15 @@ class Config
             char *       value,
             size_t       value_len,
             char *       default_value,
-            size_t       default_value_len,
             uint32_t     retries = HELIUM_POLL_RETRIES_5S)
     {
-        return _get(key,
-                    helium_config_str,
-                    value,
-                    value_len,
-                    default_value,
-                    default_value_len,
-                    retries);
+        int status = _get(key, helium_config_str, value, value_len, retries);
+        if (status != config_status_POLL_FOUND && default_value)
+        {
+            (void)strncpy(value, default_value, value_len - 1);
+            value[value_len - 1] = '\0';
+        }
+        return status;
     }
 
     /** Send a request for a configuration value.
@@ -424,8 +420,6 @@ class Config
                         enum helium_config_type config_type,
                         void *                  value,
                         size_t                  value_len,
-                        void *                  default_value,
-                        size_t                  default_value_len,
                         int8_t *                result,
                         uint32_t retries = HELIUM_POLL_RETRIES_5S);
 
@@ -546,25 +540,27 @@ class Config
      * When this returns true you should assume that any configuration
      * values you have previously retrieved are no longer valid.
      *
+     * @param retries The number of times to retry (optional). Defaults
+     *     to 0 since the common case is that staleness will be signaled
+     *     after a normal channel send has been performed.
      * @returns true if previous configuration values are stale, false
      *     if not
      */
-    bool is_stale();
+    bool is_stale(uint32_t retries = 0);
 
 
   private:
-    int       _get(const char *            config_key,
-                   enum helium_config_type config_type,
-                   void *                  value,
-                   size_t                  value_len,
-                   void *                  default_value,
-                   size_t                  default_value_len,
-                   uint32_t                retries);
-    int       _set(const char *            config_key,
-                   enum helium_config_type value_type,
-                   void *                  value,
-                   uint32_t                retries);
-    Channel * _channel;
+    int _get(const char *            config_key,
+             enum helium_config_type config_type,
+             void *                  value,
+             size_t                  value_len,
+             uint32_t                retries);
+    int _set(const char *            config_key,
+             enum helium_config_type value_type,
+             void *                  value,
+             uint32_t                retries);
+
+    struct helium_config _ctx;
 };
 
 
